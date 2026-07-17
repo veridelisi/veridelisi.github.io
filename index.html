@@ -1,107 +1,354 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Veridelisi Projects</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veridelisi — Ledger of Projects</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:        #241d13;
+    --ink-2:      #f1ead4;
+    --paper:      #241d13;
+    --paper-dim:  #766c53;
+    --rule:       #cbbd97;
+    --rule-soft:  rgba(120,100,60,0.16);
+    --gold:       #a3752f;
+    --gold-dim:   #8f7642;
+    --red:        #8b3a3a;
+    --focus:      #8b3a3a;
+  }
 
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #0f172a;
-            color: white;
-            text-align: center;
-        }
+  *{ box-sizing: border-box; }
 
-        h1 {
-            margin-top: 40px;
-            font-size: 40px;
-        }
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0px, transparent 37px,
+        var(--rule-soft) 37px, var(--rule-soft) 38px
+      ),
+      linear-gradient(180deg, #f8f2e0 0%, #ede4c9 100%);
+    color: var(--paper);
+    font-family: "IBM Plex Sans", Arial, sans-serif;
+    min-height: 100vh;
+  }
 
-        p {
-            color: #94a3b8;
-        }
+  a{ color: inherit; }
 
-        .container {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-top: 50px;
-            flex-wrap: wrap;
-        }
+  /* margin rule — the red vertical line found down the side of a ledger page */
+  .margin-rule{
+    position: fixed;
+    top:0; bottom:0;
+    left: 46px;
+    width: 1px;
+    background: var(--red);
+    opacity: 0.45;
+  }
+  @media (max-width: 720px){ .margin-rule{ left: 22px; } }
 
-        .card {
-            background: #1e293b;
-            padding: 25px;
-            width: 280px;
-            border-radius: 15px;
-            transition: 0.3s;
-            text-decoration: none;
-            color: white;
-        }
+  header{
+    padding: 64px 24px 28px;
+    text-align: center;
+  }
 
-        .card:hover {
-            transform: translateY(-10px);
-            background: #334155;
-        }
+  .eyebrow{
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 14px;
+  }
 
-        .card h2 {
-            margin-bottom: 10px;
-        }
+  h1{
+    font-family: "Fraunces", serif;
+    font-optical-sizing: auto;
+    font-weight: 500;
+    font-size: clamp(34px, 6vw, 58px);
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--paper);
+  }
 
-        .card p {
-            font-size: 14px;
-        }
-    </style>
+  h1 em{
+    font-style: italic;
+    color: var(--gold);
+    font-weight: 400;
+  }
+
+  .subhead{
+    max-width: 520px;
+    margin: 16px auto 0;
+    color: var(--paper-dim);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* ticker — a scrolling strip of the vocabulary this work is built from */
+  .ticker-wrap{
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    overflow: hidden;
+    background: rgba(0,0,0,0.035);
+    white-space: nowrap;
+    margin-top: 34px;
+  }
+  .ticker{
+    display: inline-block;
+    padding: 10px 0;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12.5px;
+    letter-spacing: 0.04em;
+    color: var(--paper-dim);
+    animation: scroll 42s linear infinite;
+  }
+  .ticker span{ margin: 0 22px; }
+  .ticker span::before{ content: "·"; color: var(--gold-dim); margin-right: 22px; }
+  @keyframes scroll{
+    from{ transform: translateX(0); }
+    to{ transform: translateX(-50%); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .ticker{ animation: none; }
+  }
+
+  main{
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 46px 24px 90px;
+  }
+
+  .ledger-head{
+    display:flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--paper-dim);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 10px;
+    margin-bottom: 4px;
+  }
+
+  .entries{
+    display: flex;
+    flex-direction: column;
+  }
+
+  .entry{
+    display: grid;
+    grid-template-columns: 64px 1fr auto;
+    gap: 20px;
+    align-items: start;
+    padding: 26px 6px;
+    border-bottom: 1px solid var(--rule);
+    text-decoration: none;
+    position: relative;
+    transition: background 0.25s ease, padding-left 0.25s ease;
+  }
+
+  .entry:hover, .entry:focus-visible{
+    background: rgba(163,117,47,0.07);
+    padding-left: 16px;
+  }
+
+  .entry:focus-visible{
+    outline: 2px solid var(--focus);
+    outline-offset: -2px;
+  }
+
+  .folio{
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+    color: var(--gold-dim);
+    padding-top: 4px;
+  }
+
+  .entry-body h2{
+    font-family: "Fraunces", serif;
+    font-weight: 500;
+    font-size: 21px;
+    margin: 0 0 6px;
+    color: var(--paper);
+  }
+
+  .entry-body p{
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--paper-dim);
+    max-width: 46ch;
+  }
+
+  .tag{
+    align-self: start;
+    justify-self: end;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: var(--gold);
+    padding: 4px 9px;
+    border-radius: 2px;
+    white-space: nowrap;
+    margin-top: 4px;
+  }
+  .tag.pending{
+    background: transparent;
+    color: var(--red);
+    border: 1px solid var(--red);
+  }
+
+  .stamp{
+    position:absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-8deg) scale(0.9);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--red);
+    border: 1.5px solid var(--red);
+    border-radius: 50%;
+    padding: 9px;
+    opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+  }
+  .entry:hover .stamp, .entry:focus-visible .stamp{
+    opacity: 0.55;
+    transform: translateY(-50%) rotate(-8deg) scale(1);
+  }
+
+  @media (max-width: 620px){
+    .entry{ grid-template-columns: 40px 1fr; }
+    .tag{ grid-column: 2; justify-self: start; margin-top: 8px; }
+    .stamp{ display:none; }
+  }
+
+  footer{
+    text-align:center;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    color: var(--paper-dim);
+    letter-spacing: 0.06em;
+    padding-bottom: 50px;
+  }
+  footer .line{
+    display:inline-block;
+    border-top: 1px solid var(--rule);
+    padding-top: 14px;
+  }
+</style>
 </head>
-
 <body>
 
-    <h1>🚀 Veridelisi Projects</h1>
-    <p>Explore my research, tools, and dashboards</p>
+  <div class="margin-rule" aria-hidden="true"></div>
 
-    <div class="container">
+  <header>
+    <p class="eyebrow">Folio — Public Record</p>
+    <h1>Veridelisi<br><em>Ledger of Projects</em></h1>
+    <p class="subhead">Research, tools, and dashboards on money, markets, and how they are actually kept on the books.</p>
+  </header>
 
-        <!-- CARD 0 -->
-        <a class="card" href="https://veridelisi.streamlit.app">
-            <h2>📊 Veridelisi's Dashboard </h2>
-            <p>Financial Markets Intelligence & Data Analytics</p>
-        </a>
+  <div class="ticker-wrap" aria-hidden="true">
+    <div class="ticker">
+      <span>TGA</span><span>SOMA</span><span>FED FUNDS</span><span>M2</span><span>EURODOLLAR</span><span>REPO</span><span>QT</span><span>PETRODOLLAR</span><span>T-ACCOUNTS</span><span>1791</span><span>BANK OF THE UNITED STATES</span><span>DEBIT / CREDIT</span>
+      <span>TGA</span><span>SOMA</span><span>FED FUNDS</span><span>M2</span><span>EURODOLLAR</span><span>REPO</span><span>QT</span><span>PETRODOLLAR</span><span>T-ACCOUNTS</span><span>1791</span><span>BANK OF THE UNITED STATES</span><span>DEBIT / CREDIT</span>
+    </div>
+  </div>
 
-        <!-- CARD 1 -->
-        <a class="card" href="https://veridelisi.github.io/fed-balance-sheet-guide/index.html">
-            <h2>📊 Fed Balance Sheet Guide</h2>
-            <p>Policy options and balance sheet analysis</p>
-        </a>
+  <main>
+    <div class="ledger-head">
+      <span>Folio No.</span>
+      <span>Balance forward →</span>
+    </div>
 
-        <!-- CARD 2 -->
-        <a class="card" href="https://money-game.streamlit.app">
-            <h2>🎮 Money Game</h2>
-            <p>Interactive game to understand money creation</p>
-        </a>
+    <div class="entries">
 
-        <!-- CARD 3 -->
-        <a class="card" href="https://moneysimulator.streamlit.app/">
-            <h2>📈 Money Simulator</h2>
-            <p>Interactive tool to understand modern monetary system(Soon)</p>
-        </a>
+      <a class="entry" href="https://veridelisi.streamlit.app">
+        <span class="folio">01</span>
+        <div class="entry-body">
+          <h2>Veridelisi's Dashboard</h2>
+          <p>Financial markets intelligence and data analytics, live.</p>
+        </div>
+        <span class="tag">Live Dashboard</span>
+        <span class="stamp">OPEN</span>
+      </a>
 
-        <!-- CARD 4 -->
-        <a class="card" href="https://veridelisi.github.io/TGA-Explained/">
-            <h2>📈 TGA Explained</h2>
-            <p>Interactive tool to understand TGA</p>
-        </a>
+      <a class="entry" href="https://veridelisi.github.io/fed-balance-sheet-guide/index.html">
+        <span class="folio">02</span>
+        <div class="entry-body">
+          <h2>Fed Balance Sheet Guide</h2>
+          <p>Policy options and balance sheet analysis, laid out line by line.</p>
+        </div>
+        <span class="tag">Guide</span>
+        <span class="stamp">READ</span>
+      </a>
 
-                <!-- CARD 5 -->
-        <a class="card" href="https://veridelisi.github.io/Petrodollar/">
-            <h2>📈Petrodollar</h2>
-            <p>Dollar, Eurodollar, and the Myths of Petrodollar and Dedollarisation</p>
-        </a>
+      <a class="entry" href="https://money-game.streamlit.app">
+        <span class="folio">03</span>
+        <div class="entry-body">
+          <h2>Money Game</h2>
+          <p>An interactive game for understanding how money is created.</p>
+        </div>
+        <span class="tag">Game</span>
+        <span class="stamp">PLAY</span>
+      </a>
 
- 
+      <a class="entry" href="https://moneysimulator.streamlit.app/">
+        <span class="folio">04</span>
+        <div class="entry-body">
+          <h2>Money Simulator</h2>
+          <p>An interactive tool for understanding the modern monetary system.</p>
+        </div>
+        <span class="tag pending">Coming Soon</span>
+        <span class="stamp">SOON</span>
+      </a>
+
+      <a class="entry" href="https://veridelisi.github.io/TGA-Explained/">
+        <span class="folio">05</span>
+        <div class="entry-body">
+          <h2>TGA Explained</h2>
+          <p>An interactive tool for understanding the Treasury General Account.</p>
+        </div>
+        <span class="tag">Guide</span>
+        <span class="stamp">READ</span>
+      </a>
+
+      <a class="entry" href="https://veridelisi.github.io/Petrodollar/">
+        <span class="folio">06</span>
+        <div class="entry-body">
+          <h2>Petrodollar</h2>
+          <p>Dollar, eurodollar, and the myths of petrodollar and de-dollarisation.</p>
+        </div>
+        <span class="tag">Essay</span>
+        <span class="stamp">READ</span>
+      </a>
+
+      <a class="entry" href="https://veridelisi.github.io/The-First-Bank-of-United-States-1791-1793-/">
+        <span class="folio">07</span>
+        <div class="entry-body">
+          <h2>The First Bank of the United States, 1791–1793</h2>
+          <p>Hamilton's subscription, the charter act, and a T-account reconstruction of the bill-of-exchange transaction.</p>
+        </div>
+        <span class="tag">Archive</span>
+        <span class="stamp">READ</span>
+      </a>
 
     </div>
+  </main>
+
+  <footer>
+    <span class="line">Balance carried forward — end of folio</span>
+  </footer>
 
 </body>
 </html>
